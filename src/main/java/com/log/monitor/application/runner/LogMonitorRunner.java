@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+// add component because Spring won't detect the class and won't run the run() method
 @Component
 public class LogMonitorRunner implements CommandLineRunner {
 
