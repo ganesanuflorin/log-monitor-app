@@ -14,6 +14,7 @@ public class LogEntry {
     private String status;
     private String pid;
 
+    // take a line from logs.log and populate the fields from LogEntry.
     public LogEntry(String line) {
         String[] parts = line.split(",");
         this.timestamp =  LocalTime.parse(parts[0].trim(), DateTimeFormatter.ofPattern("HH:mm:ss"));

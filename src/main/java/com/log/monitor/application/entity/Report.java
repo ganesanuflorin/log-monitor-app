@@ -11,6 +11,7 @@ public class Report {
     private final String message;
     private final String description;
 
+    // change the basic toString to have like a real log message
     @Override
     public String toString() {
         return String.format("[%s] %s %s", type, message, description);
