@@ -1,6 +1,8 @@
 package com.log.monitor.application.runner;
 
+import com.log.monitor.application.InfoType;
 import com.log.monitor.application.entity.LogEntry;
+import com.log.monitor.application.entity.Report;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -22,36 +24,39 @@ public class LogMonitorRunner implements CommandLineRunner {
        String filePath = "src/main/resources/static/logs.log";
 
         Map<String, LogEntry> startMap = new HashMap<>();
-        List<String> outputLogs = new ArrayList<>();
+        List<Report> reports = new ArrayList<>();
 
         try(BufferedReader reader = Files.newBufferedReader(Paths.get(filePath))) {
             String line;
             while((line = reader.readLine()) != null) {
                 LogEntry entry = new LogEntry(line);
 
-                if(entry.getStatus().equals("START")) {
+                if("START".equals(entry.getStatus())) {
                     startMap.put(entry.getPid(), entry);
                 }
-                if(entry.getStatus().equals("END")) {
+                if("END".equals(entry.getStatus())) {
                     LogEntry startEntry = startMap.get(entry.getPid());
                     if (startEntry == null) {
                         continue;
                     }
                     long durationSeconds = Duration.between(startEntry.getTimestamp(), entry.getTimestamp()).getSeconds();
-                    StringBuilder logLine = new StringBuilder(String.format("PID %s (%s) took %d seconds.",
-                            entry.getPid(), entry.getDescription(), durationSeconds));
+                    String description = String.format("PID %s (%s) took %d seconds.",
+                            entry.getPid(), entry.getDescription(), durationSeconds);
 
                     if (durationSeconds > 600) {
-                        logLine.append("Error: Exceeded 10 minuts");
+                        reports.add(new Report(InfoType.ERROR, "Exceeded 10 minutes", description));
                     } else if (durationSeconds > 300) {
-                        logLine.append("Warning: Exceeded 5 minutes");
+                        reports.add(new Report(InfoType.WARNING, "Exceeded 5 minutes", description));
+                    } else {
+                        reports.add(new Report(InfoType.INFO, "", description));
                     }
 
-                    outputLogs.add(logLine.toString());
                     startMap.remove(entry.getPid());
                 }
             }
-            outputLogs.forEach(System.out::println);
+            reports.stream()
+                    .filter(r -> r.getType() != InfoType.INFO)
+                    .forEach(System.out::println);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
